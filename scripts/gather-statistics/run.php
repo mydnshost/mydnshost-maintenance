@@ -42,27 +42,37 @@
 		return $points;
 	}
 
-	echo 'Begin statistics.', "\n";
-	// Grab all stats
-	$data = [];
-	foreach (explode(',', $config['bind']['slaves']) as $slave) {
-		$slave = trim($slave);
-		$slave = explode('=', $slave);
+	if (!file_exists(__DIRNAME__ . '/run.lock')) { file_put_contents(__DIRNAME__ . '/run.lock', ''); }
 
-		$name = $slave[0];
-		$host = $slave[1];
+	$fp = fopen(__DIRNAME__ . '/run.lock', 'r+');
+	if (flock($fp, LOCK_EX)) {
+		echo 'Begin statistics.', "\n";
+		// Grab all stats
+		$data = [];
+		foreach (explode(',', $config['bind']['slaves']) as $slave) {
+			$slave = trim($slave);
+			$slave = explode('=', $slave);
 
-		$data[$name] = @file_get_contents('http://' . $host . ':8080/');
-	}
+			$name = $slave[0];
+			$host = $slave[1];
 
-	// Parse stats into database.
-	$time = time();
-	foreach ($data as $name => $stats) {
-		if (!empty($stats)) {
-			$xml = simplexml_load_string($stats);
-
-			$points = parseStats($name, $xml, $time);
-			$result = $database->writePoints($points, InfluxDB\Database::PRECISION_SECONDS);
+			$data[$name] = @file_get_contents('http://' . $host . ':8080/');
 		}
+
+		// Parse stats into database.
+		$time = time();
+		foreach ($data as $name => $stats) {
+			if (!empty($stats)) {
+				$xml = simplexml_load_string($stats);
+
+				$points = parseStats($name, $xml, $time);
+				$result = $database->writePoints($points, InfluxDB\Database::PRECISION_SECONDS);
+			}
+		}
+		echo 'End statistics.', "\n";
+
+		flock($fp, LOCK_UN);
+		fclose($fp);
+	} else {
+		echo 'Unable to grab statistics, unable to get lock.', "\n";
 	}
-	echo 'End statistics.', "\n";
