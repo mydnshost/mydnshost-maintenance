@@ -3,13 +3,22 @@ Maintenance Container
 
 This container runs various scripts under cron to perform maintenance tasks:
 
- - Every 6 Hours:
-   - Database Backups
-   - Bind Zone Backups
- - Every Hour
-   - Update StatusCake checks
-  - Every Minute
- - Gather Statistics from bind servers
+	- Every 6 Hours:
+		- Database Backups
+		- Bind Zone Backups
+	- Every Hour
+		- Update StatusCake checks
+	- Every Minute
+		- Gather Statistics from bind servers
+
+The following mounts are required:
+
+	- /output
+		- The directory to store output from scripts should be mounted in to this directory
+	- /var/run/docker.sock
+		- The docker socket should be mounted into the container
+	- /bind
+		- The bind zone files should be mounted to /bind
 
 ## Backup DB
 
