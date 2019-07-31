@@ -42,9 +42,9 @@
 		return $points;
 	}
 
-	if (!file_exists(__DIRNAME__ . '/run.lock')) { file_put_contents(__DIRNAME__ . '/run.lock', ''); }
+	if (!file_exists(__DIR__ . '/run.lock')) { file_put_contents(__DIR__ . '/run.lock', ''); }
 
-	$fp = fopen(__DIRNAME__ . '/run.lock', 'r+');
+	$fp = fopen(__DIR__ . '/run.lock', 'r+');
 	if (flock($fp, LOCK_EX)) {
 		echo 'Begin statistics.', "\n";
 		// Grab all stats
