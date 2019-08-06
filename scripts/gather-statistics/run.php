@@ -10,6 +10,12 @@
 	$database = $client->selectDB($config['influx']['db']);
 	if (!$database->exists()) { $database->create(); }
 
+	if (empty($config['redis']) || !class_exists('Redis')) {
+		die('Redis is required for GatherStatistics.');
+	} else {
+		RedisLock::setRedisHost($config['redis'], $config['redisPort']);
+	}
+
 	function parseStats($server, $xml, $time = NULL) {
 		$xml = simplexml_load_string($xml);
 		$points = [];
@@ -57,8 +63,7 @@
 
 	$time = time();
 
-	$fp = fopen(__DIR__ . '/run.lock', 'r+');
-	if (flock($fp, LOCK_EX)) {
+	if (RedisLock::acquireLock('GatherStatistics', false)) {
 		echo 'Begin statistics.', "\n";
 
 		if (FakeThread::available()) {
@@ -130,8 +135,7 @@
 		}
 		echo 'End statistics.', "\n";
 
-		flock($fp, LOCK_UN);
-		fclose($fp);
+		RedisLock::releaseLock('GatherStatistics')
 	} else {
 		echo 'Unable to grab statistics, unable to get lock.', "\n";
 	}
