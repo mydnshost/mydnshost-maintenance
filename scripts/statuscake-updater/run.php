@@ -48,13 +48,17 @@
 	// $newContent = sprintf('127.%d.%d.%d', random_int(0, 255), random_int(0, 255), random_int(0, 255));
 	$newContent = date('127.n.j.G'); // 127.month.day.hour
 
+	echo 'Starting statuscake-updater at ', date('r'), "\n";
+
 	echo 'Setting activerr (', $rrs[$newActivePos], ') to ', $newContent, "\n";
 
 	// Update 'active' to point at the new activerr and the activerr with the new content.
 	$api->setDomainRecords($config['mydnshost']['domain'], ['records' => [['id' => $active['id'], 'content' => $rrs[$newActivePos]], ['id' => $activerr['id'], 'content' => $newContent]]]);
 
 	// Allow slaves time to update.
+	echo 'Allowing servers time to update...', "\n";
 	sleep(30);
+	echo 'Updating tests.', "\n";
 
 	// Update statuscake
 	$headers = array('API' => $config['statuscake']['apikey'], 'Username' => $config['statuscake']['username']);
