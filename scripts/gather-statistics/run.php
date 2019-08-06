@@ -2,6 +2,7 @@
 <?php
 	require_once(__DIR__ . '/functions.php');
 	require_once(__DIR__ . '/FakeThread.php');
+	require_once(__DIR__ . '/RedisLock.php');
 
 	if (empty($config['influx']['host']) || empty($config['bind']['slaves'])) { die(0); }
 
