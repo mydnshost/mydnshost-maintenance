@@ -135,7 +135,7 @@
 		}
 		echo 'End statistics.', "\n";
 
-		RedisLock::releaseLock('GatherStatistics')
+		RedisLock::releaseLock('GatherStatistics');
 	} else {
 		echo 'Unable to grab statistics, unable to get lock.', "\n";
 	}
