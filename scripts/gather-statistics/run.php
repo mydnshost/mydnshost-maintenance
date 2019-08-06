@@ -64,7 +64,7 @@
 
 	$time = time();
 
-	if (RedisLock::acquireLock('GatherStatistics', false)) {
+	if (RedisLock::acquireLock('GatherStatistics', false, 300)) {
 		echo 'Begin statistics.', "\n";
 
 		if (FakeThread::available()) {
