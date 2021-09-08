@@ -25,7 +25,7 @@
 		echo '[statuscake-updater] Creating missing activerr TXT record: ', json_encode($active), "\n";
 	} else {
 		$active = $active[0];
-		echo '[statuscake-updater] Current activerr is: ', $active, "\n";
+		echo '[statuscake-updater] Current activerr is: ', json_encode($active), "\n";
 	}
 
 	// Find the "active" RRNAME in our list of RRNAMES.
@@ -35,7 +35,7 @@
 	// Find the next one to use
 	$newActivePos = ($oldActivePos + 1) % count($rrs);
 
-	echo '[statuscake-updater] RRs: ', json_encode($rrs), "\n";
+	echo '[statuscake-updater] RRs: ', json_encode($rrs, JSON_FORCE_OBJECT), "\n";
 	echo '[statuscake-updater] Old: ', $oldActivePos, ' => ', $rrs[$oldActivePos], ' || New: ', $newActivePos, ' => ', $rrs[$newActivePos], "\n";
 
 	// Find the actual record we need to chagne (the new active RRNAME).
