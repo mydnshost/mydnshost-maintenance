@@ -4,18 +4,20 @@
 	require_once(__DIR__ . '/FakeThread.php');
 	require_once(__DIR__ . '/RedisLock.php');
 
-	$runId = base_convert(crc32(uniqid()), 16, 36);;
+	$runId = base_convert(crc32(uniqid()), 16, 36);
 
-	function showTime() {
-		return date('[Y-m-d H:i:s O]');
+	function doLog(...$args) {
+		global $runId;
+		echo date('[Y-m-d H:i:s O]'), ' [gather-statistics::', $runId, '] ', implode('', $args), "\n";
 	}
 
 	$statsTime = time();
 
-	echo showTime(), ' [', $runId, '] Starting gather-statistics.', "\n";
+	doLog('Starting gather-statistics.');
 
 	if (empty($config['redis']) || !class_exists('Redis')) {
-		die(showTime() . ' [' . $runId . '] Redis is required for GatherStatistics.' . "\n");
+		doLog('Redis is required for gather-statistics.');
+		die();
 	} else {
 		RedisLock::setRedisHost($config['redis'], $config['redisPort']);
 	}
@@ -36,11 +38,11 @@
 		$points = [];
 
 		if ($xml === false) {
-			echo showTime(), ' [', $runId, '] Failed to parse statistics for server: ', $server, "\n";
+			doLog('Failed to parse statistics for server: ', $server);
 			return FALSE;
 		}
 
-		echo showTime(), ' [', $runId, '] Parsing statistics for server: ', $server, "\n";
+		doLog('Parsing statistics for server: ', $server);
 
 		if ($statsTime == NULL) {
 			$statsTime = strtotime((string)$xml->xpath('/statistics/server/current-time')[0]);
@@ -75,10 +77,10 @@
 	}
 
 	if (RedisLock::acquireLock('GatherStatistics', false, 300)) {
-		echo showTime(), ' [', $runId, '] Begin statistics.', "\n";
+		doLog('Begin statistics.');
 
 		if (FakeThread::available()) {
-			echo showTime(), ' [', $runId, '] Threaded.', "\n";
+			doLog('Threaded.');
 			$runningThreads = [];
 		}
 
@@ -92,7 +94,7 @@
 			$host = $slave[1];
 
 			if (FakeThread::available()) {
-				echo showTime(), ' [', $runId, '] Starting collector Thread for: ', $name, "\n";
+				doLog('Starting collector Thread for: ', $name);
 				$thread = new FakeThread('getStats');
 				$thread->start($host);
 				$runningThreads[$name] = ['thread' => $thread, 'type' => 'collector'];
@@ -110,12 +112,12 @@
 				foreach ($currentThreads as $name => $t) {
 					if (!$t['thread']->isAlive()) {
 						unset($runningThreads[$name]);
-						echo showTime(), ' [', $runId, '] ', $t['type'], ' thread has finished for: ', $name, "\n";
+						doLog('', $t['type'], ' thread has finished for: ', $name);
 
 						if ($t['type'] == 'collector') {
 							$data = $t['thread']->getData();
 
-							echo showTime(), ' [', $runId, '] Starting parser Thread for: ', $name, "\n";
+							doLog('Starting parser Thread for: ', $name);
 							$thread = new FakeThread('parseStats');
 							$thread->start($name, $data, $statsTime);
 							$runningThreads[$name] = ['thread' => $thread, 'type' => 'parser'];
@@ -129,7 +131,7 @@
 				usleep(100000);
 			}
 
-			echo showTime(), ' [', $runId, '] Got all data.', "\n";
+			doLog('Got all data.');
 		} else {
 			foreach ($data as $name => $stats) {
 				if (!empty($stats)) {
@@ -144,9 +146,9 @@
 				$result = $database->writePoints($p, InfluxDB\Database::PRECISION_SECONDS);
 			}
 		}
-		echo showTime(), ' [', $runId, '] End statistics.', "\n";
+		doLog('End statistics.');
 
 		RedisLock::releaseLock('GatherStatistics');
 	} else {
-		echo showTime(), ' [', $runId, '] Unable to grab statistics, unable to get lock.', "\n";
+		doLog('Unable to grab statistics, unable to get lock.');
 	}

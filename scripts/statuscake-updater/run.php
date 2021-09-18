@@ -1,10 +1,30 @@
 #!/usr/bin/php
 <?php
 	require_once(__DIR__ . '/functions.php');
+	require_once(__DIR__ . '/RedisLock.php');
+
+	$runId = base_convert(crc32(uniqid()), 16, 36);
+
+	function doLog(...$args) {
+		global $runId;
+		echo date('[Y-m-d H:i:s O]'), ' [statuscake-updater::', $runId, '] ', implode('', $args), "\n";
+	}
 
 	if (empty($config['mydnshost']['api']) || empty($config['statuscake']['username'])) { die(0); }
 
-	echo '[statuscake-updater] Starting statuscake-updater at ', date('r'), "\n";
+	doLog('Starting statuscake-updater at ', date('r'));
+
+	if (empty($config['redis']) || !class_exists('Redis')) {
+		doLog('Redis is required for statuscake-updater.');
+		die();
+	} else {
+		RedisLock::setRedisHost($config['redis'], $config['redisPort']);
+	}
+
+	if (!RedisLock::acquireLock('statuscake-updater', false, 300)) {
+		doLog('Unable to update statuscake, unable to get lock.');
+		die();
+	}
 
 	$api = new MyDNSHostAPI($config['mydnshost']['api']);
 	$api->setAuthDomainKey($config['mydnshost']['domain'], $config['mydnshost']['domain_key']);
@@ -22,10 +42,10 @@
 	if (!isset($active[0])) {
 		$active = ['name' => 'active', 'type' => 'TXT', 'content' => $rrs[0]];
 		$api->setDomainRecords($config['mydnshost']['domain'], ['records' => [$active]]);
-		echo '[statuscake-updater] Creating missing activerr TXT record: ', json_encode($active), "\n";
+		doLog('Creating missing activerr TXT record: ', json_encode($active));
 	} else {
 		$active = $active[0];
-		echo '[statuscake-updater] Current activerr is: ', json_encode($active), "\n";
+		doLog('Current activerr is: ', json_encode($active));
 	}
 
 	// Find the "active" RRNAME in our list of RRNAMES.
@@ -35,54 +55,56 @@
 	// Find the next one to use
 	$newActivePos = ($oldActivePos + 1) % count($rrs);
 
-	echo '[statuscake-updater] RRs: ', json_encode($rrs, JSON_FORCE_OBJECT), "\n";
-	echo '[statuscake-updater] Old: ', $oldActivePos, ' => ', $rrs[$oldActivePos], ' || New: ', $newActivePos, ' => ', $rrs[$newActivePos], "\n";
+	doLog('RRs: ', json_encode($rrs, JSON_FORCE_OBJECT));
+	doLog('Old: ', $oldActivePos, ' => ', $rrs[$oldActivePos], ' || New: ', $newActivePos, ' => ', $rrs[$newActivePos]);
 
 	// Find the actual record we need to chagne (the new active RRNAME).
 	// Create it if it does not exist.
 	$activerr = $api->getDomainRecordsByName($config['mydnshost']['domain'], $rrs[$newActivePos]);
 	if (!isset($activerr[0])) {
 		$activerr = ['name' => $rrs[$newActivePos], 'type' => 'A', 'content' => '127.0.0.1'];
-		echo '[statuscake-updater] Create Missing ActiveRR', "\n";
+		doLog('Create Missing ActiveRR');
 
 		$activerr = $api->setDomainRecords($config['mydnshost']['domain'], ['records' => [$activerr]]);
 		$activerr = $activerr['response']['changed']['0'];
-		echo '[statuscake-updater] Using activerr: ', json_encode($activerr), "\n";
+		doLog('Using activerr: ', json_encode($activerr));
 	} else {
 		$activerr = $activerr[0];
-		echo '[statuscake-updater] Found activerr: ', json_encode($activerr), "\n";
+		doLog('Found activerr: ', json_encode($activerr));
 	}
 
 	// Create a new value
 	// $newContent = sprintf('127.%d.%d.%d', random_int(0, 255), random_int(0, 255), random_int(0, 255));
 	$newContent = date('127.n.j.G'); // 127.month.day.hour
 
-	echo '[statuscake-updater] Setting activerr (', $rrs[$newActivePos], ') to ', $newContent, "\n";
+	doLog('Setting activerr (', $rrs[$newActivePos], ') to ', $newContent);
 
 	// Update 'active' to point at the new activerr and the activerr with the new content.
-	$api->setDomainRecords($config['mydnshost']['domain'], ['records' => [['id' => $active['id'], 'content' => $rrs[$newActivePos]], ['id' => $activerr['id'], 'content' => $newContent]]]);
+    $res = $api->setDomainRecords($config['mydnshost']['domain'], ['records' => [['id' => $active['id'], 'content' => $rrs[$newActivePos]], ['id' => $activerr['id'], 'content' => $newContent]]]);
+    doLog('Setting: ', json_encode(['records' => [['id' => $active['id'], 'content' => $rrs[$newActivePos]], ['id' => $activerr['id'], 'content' => $newContent]]]));
+    doLog('Setting Result: ', json_encode($res));
 
 	// Allow slaves time to update.
-	echo '[statuscake-updater] Allowing servers time to update... (Waiting: 30s)', "\n";
+	doLog('Allowing servers time to update... (Waiting: 30s)');
 	sleep(30);
-	echo '[statuscake-updater] Updating tests.', "\n";
+	doLog('Updating tests.');
 
 	// Update statuscake
 	$headers = array('API' => $config['statuscake']['apikey'], 'Username' => $config['statuscake']['username']);
 	$data = ['TestID' => '0', 'DNSIP' => $newContent, 'WebsiteURL' => sprintf('%s.%s', $rrs[$newActivePos], $config['mydnshost']['domain'])];
 
-	echo '[statuscake-updater] Updating tests to check ', $data['WebsiteURL'], ' is ', $data['DNSIP'], "\n";
+	doLog('Updating tests to check ', $data['WebsiteURL'], ' is ', $data['DNSIP']);
 
 	foreach ($tests as $testid) {
 		$data['TestID'] = $testid;
 		try {
 			Requests::put('https://app.statuscake.com/API/Tests/Update', $headers, $data);
-			echo '[statuscake-updater] Updated test ', $testid, "\n";
+			doLog('Updated test ', $testid);
 		} catch (Exception $ex) {
-			echo '[statuscake-updater] Error updating ', $testid, ': ', $ex->getMessage(), "\n";
+			doLog('Error updating ', $testid, ': ', $ex->getMessage());
 		}
 	}
 
 	// Done.
-
-	echo '[statuscake-updater] Finished statuscake-updater at ', date('r'), "\n";
+	RedisLock::releaseLock('GatherStatistics');
+	doLog('Finished statuscake-updater at ', date('r'));
