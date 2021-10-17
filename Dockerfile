@@ -1,4 +1,4 @@
-FROM mydnshost/mydnshost-docker-cron:latest
+FROM registry.shanemcc.net/mydnshost-public/mydnshost-docker-cron:latest
 
 RUN mkdir /output
 
