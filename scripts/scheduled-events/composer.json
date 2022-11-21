@@ -1,0 +1,14 @@
+{
+    "name": "mydnshost/scheduled-events",
+    "description": "MyDNSHost Maintenance script to schedule events.",
+    "require": {
+        "php": ">=7.1",
+        "php-amqplib/php-amqplib": ">=3.0.0"
+    },
+    "authors": [
+        {
+            "name": "Shane Mc Cormack",
+            "email": "shanemcc@gmail.com"
+        }
+    ]
+}

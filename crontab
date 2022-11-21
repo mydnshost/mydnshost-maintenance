@@ -1,9 +1,24 @@
+# Monthly
+0 0 1 * * root /scripts/scheduled-events/run.php cron.monthly >/var/log/cron.log 2>&
+
+# Weekly
+0 0 * * 0 root /scripts/scheduled-events/run.php cron.weekly >/var/log/cron.log 2>&1
+
+# Daily
+0 0 * * * root /scripts/scheduled-events/run.php cron.daily >/var/log/cron.log 2>&1
+
+# 12 Hourly
+0 */12 * * * root /scripts/scheduled-events/run.php cron.12hourly >/var/log/cron.log 2>&1
+
 # 6 Hourly
 0 */6 * * * root /scripts/backupDB.sh >/var/log/cron.log 2>&1
 0 */6 * * * root /scripts/backupBindData.sh >/var/log/cron.log 2>&1
+0 */6 * * * root /scripts/scheduled-events/run.php cron.6hourly >/var/log/cron.log 2>&1
 
 # Hourly
 0 * * * * root /scripts/statuscake-updater/run.php >/var/log/cron.log 2>&1
+0 * * * * root /scripts/scheduled-events/run.php cron.hourly >/var/log/cron.log 2>&1
 
 # Every Minute
 * * * * * root /scripts/gather-statistics/run.php >/var/log/cron.log 2>&1
+* * * * * root /scripts/scheduled-events/run.php cron.minutely >/var/log/cron.log 2>&1
