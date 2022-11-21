@@ -7,7 +7,7 @@
 
 	function doLog(...$args) {
 		global $runId;
-		echo date('[Y-m-d H:i:s O]'), ' [gather-statistics::', $runId, '] ', implode('', $args), "\n";
+		echo date('[Y-m-d H:i:s O]'), ' [scheduled-events::', $runId, '] ', implode('', $args), "\n";
 	}
 
 	if (!isset($argv[1])) {
