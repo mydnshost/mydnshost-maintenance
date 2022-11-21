@@ -8,4 +8,5 @@ COPY scripts /scripts
 
 RUN apt-get clean && apt-get update && apt-get -y install unzip php-redis && rm -rf /var/lib/apt/lists/* && \
     cd /scripts/statuscake-updater && composer install && \
-    cd /scripts/gather-statistics && composer install
+    cd /scripts/gather-statistics && composer install && \
+    cd /scripts/scheduled-events && composer install
