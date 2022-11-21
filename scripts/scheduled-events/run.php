@@ -22,6 +22,5 @@
 	$connection = new AMQPStreamConnection($config['rabbitmq']['host'], $config['rabbitmq']['port'], $config['rabbitmq']['user'], $config['rabbitmq']['pass']);
 	$channel = $connection->channel();
 	$channel->exchange_declare('events', 'topic', false, false, false);
-	$event = strtolower('cron.daily');
 	$msg = new AMQPMessage(json_encode(['event' => $event, 'args' => $args]));
 	$channel->basic_publish($msg, 'events', 'event.' . $event);
