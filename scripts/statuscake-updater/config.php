@@ -9,6 +9,9 @@
 
 	$config['statuscake']['testids'] = getEnvOrDefault('STATUSCAKE_TESTIDS', '12345,67890');
 
+	$config['redis'] = getEnvOrDefault('REDIS_HOST', '');
+	$config['redisPort'] = getEnvOrDefault('REDIS_PORT', 6379);
+
 	if (file_exists(dirname(__FILE__) . '/config.local.php')) {
 		include(dirname(__FILE__) . '/config.local.php');
 	}
