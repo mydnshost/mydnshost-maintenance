@@ -1,24 +1,23 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "hash": "bbc0d0dcdd05a608befffdc7b1af0a15",
     "content-hash": "60d0268a2fd24e53b2dd5400fd5f84b6",
     "packages": [
         {
             "name": "mydnshost/mydnshost-php-api",
-            "version": "0.1.1",
+            "version": "0.1.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mydnshost/mydnshost-php-api.git",
-                "reference": "4889cb4cbf4b1933b01414606f863f7c96032f59"
+                "reference": "815dd8cf26081b3e65c697bb4798b6e3f8c397ab"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mydnshost/mydnshost-php-api/zipball/4889cb4cbf4b1933b01414606f863f7c96032f59",
-                "reference": "4889cb4cbf4b1933b01414606f863f7c96032f59",
+                "url": "https://api.github.com/repos/mydnshost/mydnshost-php-api/zipball/815dd8cf26081b3e65c697bb4798b6e3f8c397ab",
+                "reference": "815dd8cf26081b3e65c697bb4798b6e3f8c397ab",
                 "shasum": ""
             },
             "require": {
@@ -44,27 +43,38 @@
             ],
             "description": "PHP API for mydnshost.co.uk",
             "homepage": "https://github.com/mydnshost/mydnshost-php-api",
-            "time": "2017-06-05 03:16:03"
+            "support": {
+                "issues": "https://github.com/mydnshost/mydnshost-php-api/issues",
+                "source": "https://github.com/mydnshost/mydnshost-php-api/tree/master"
+            },
+            "time": "2017-09-24T15:12:35+00:00"
         },
         {
             "name": "rmccue/requests",
-            "version": "v1.7.0",
+            "version": "v1.8.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/rmccue/Requests.git",
-                "reference": "87932f52ffad70504d93f04f15690cf16a089546"
+                "url": "https://github.com/WordPress/Requests.git",
+                "reference": "82e6936366eac3af4d836c18b9d8c31028fe4cd5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/rmccue/Requests/zipball/87932f52ffad70504d93f04f15690cf16a089546",
-                "reference": "87932f52ffad70504d93f04f15690cf16a089546",
+                "url": "https://api.github.com/repos/WordPress/Requests/zipball/82e6936366eac3af4d836c18b9d8c31028fe4cd5",
+                "reference": "82e6936366eac3af4d836c18b9d8c31028fe4cd5",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.2"
             },
             "require-dev": {
-                "requests/test-server": "dev-master"
+                "dealerdirect/phpcodesniffer-composer-installer": "^0.7",
+                "php-parallel-lint/php-console-highlighter": "^0.5.0",
+                "php-parallel-lint/php-parallel-lint": "^1.3",
+                "phpcompatibility/php-compatibility": "^9.0",
+                "phpunit/phpunit": "^4.8 || ^5.7 || ^6.5 || ^7.5",
+                "requests/test-server": "dev-master",
+                "squizlabs/php_codesniffer": "^3.5",
+                "wp-coding-standards/wpcs": "^2.0"
             },
             "type": "library",
             "autoload": {
@@ -83,7 +93,7 @@
                 }
             ],
             "description": "A HTTP library written in PHP, for human beings.",
-            "homepage": "http://github.com/rmccue/Requests",
+            "homepage": "http://github.com/WordPress/Requests",
             "keywords": [
                 "curl",
                 "fsockopen",
@@ -93,7 +103,11 @@
                 "iri",
                 "sockets"
             ],
-            "time": "2016-10-13 00:11:37"
+            "support": {
+                "issues": "https://github.com/WordPress/Requests/issues",
+                "source": "https://github.com/WordPress/Requests/tree/v1.8.1"
+            },
+            "time": "2021-06-04T09:56:25+00:00"
         }
     ],
     "packages-dev": [],
@@ -105,5 +119,6 @@
     "platform": {
         "php": ">=7.1"
     },
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "2.3.0"
 }
