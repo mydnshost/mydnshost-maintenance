@@ -106,5 +106,5 @@
 	}
 
 	// Done.
-	RedisLock::releaseLock('GatherStatistics');
+	RedisLock::releaseLock('statuscake-updater');
 	doLog('Finished statuscake-updater at ', date('r'));
