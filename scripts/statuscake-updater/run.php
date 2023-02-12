@@ -98,7 +98,7 @@
 	foreach ($tests as $testid) {
 		try {
 			$resp = Requests::put('https://api.statuscake.com/v1/uptime/' . $testid, $headers, $data);
-			if ($resp->status_code < 200 || $resp->status_code >= 300) {
+			if ($resp->status_code >= 200 && $resp->status_code < 300) {
 				doLog('Updated test ', $testid);
 			} else {
 				throw new Exception('Got ' . $resp->status_code . ' from API.');
