@@ -80,9 +80,9 @@
 	doLog('Setting activerr (', $rrs[$newActivePos], ') to ', $newContent);
 
 	// Update 'active' to point at the new activerr and the activerr with the new content.
-    $res = $api->setDomainRecords($config['mydnshost']['domain'], ['records' => [['id' => $active['id'], 'content' => $rrs[$newActivePos]], ['id' => $activerr['id'], 'content' => $newContent]]]);
-    doLog('Setting: ', json_encode(['records' => [['id' => $active['id'], 'content' => $rrs[$newActivePos]], ['id' => $activerr['id'], 'content' => $newContent]]]));
-    doLog('Setting Result: ', json_encode($res));
+	$res = $api->setDomainRecords($config['mydnshost']['domain'], ['records' => [['id' => $active['id'], 'content' => $rrs[$newActivePos]], ['id' => $activerr['id'], 'content' => $newContent]]]);
+	doLog('Setting: ', json_encode(['records' => [['id' => $active['id'], 'content' => $rrs[$newActivePos]], ['id' => $activerr['id'], 'content' => $newContent]]]));
+	doLog('Setting Result: ', json_encode($res));
 
 	// Allow slaves time to update.
 	doLog('Allowing servers time to update... (Waiting: 30s)');
@@ -90,16 +90,19 @@
 	doLog('Updating tests.');
 
 	// Update statuscake
-	$headers = array('API' => $config['statuscake']['apikey'], 'Username' => $config['statuscake']['username']);
-	$data = ['TestID' => '0', 'DNSIP' => $newContent, 'WebsiteURL' => sprintf('%s.%s', $rrs[$newActivePos], $config['mydnshost']['domain'])];
+	$headers = array('Authorization' => 'Bearer ' . $config['statuscake']['apikey']);
+	$data = ['dns_ips' => [$newContent], 'website_url' => sprintf('%s.%s', $rrs[$newActivePos], $config['mydnshost']['domain'])];
 
-	doLog('Updating tests to check ', $data['WebsiteURL'], ' is ', $data['DNSIP']);
+	doLog('Updating tests to check ', $data['website_url'], ' is ', $data['dns_ips'][0]);
 
 	foreach ($tests as $testid) {
-		$data['TestID'] = $testid;
 		try {
-			Requests::put('https://app.statuscake.com/API/Tests/Update', $headers, $data);
-			doLog('Updated test ', $testid);
+			$resp = Requests::put('https://api.statuscake.com/v1/uptime/' . $testid, $headers, $data);
+			if ($resp->status_code < 200 || $resp->status_code >= 300) {
+				doLog('Updated test ', $testid);
+			} else {
+				throw new Exception('Got ' . $resp->status_code . ' from API.');
+			}
 		} catch (Exception $ex) {
 			doLog('Error updating ', $testid, ': ', $ex->getMessage());
 		}
