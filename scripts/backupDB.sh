@@ -11,7 +11,7 @@ curl --silent --unix-socket /var/run/docker.sock "http:/docker/containers/json" 
 	echo "Container: ${CID}";
 	echo "====================";
 	JSON=`mktemp`
-	curl --silent --unix-socket /var/run/docker.sock "http:/containers/${CID}/json" > "${JSON}"
+	curl --silent --unix-socket /var/run/docker.sock "http:/docker/containers/${CID}/json" > "${JSON}"
 
 	CHOST=`jq -r '.Config.Hostname + "." + .Config.Domainname' "${JSON}"`
 	DBUSER=`jq -r '.Config.Labels."uk.co.mydnshost.maintenance.db.user"' "${JSON}"`
