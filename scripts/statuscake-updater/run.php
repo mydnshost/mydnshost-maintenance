@@ -10,8 +10,6 @@
 		echo date('[Y-m-d H:i:s O]'), ' [statuscake-updater::', $runId, '] ', implode('', $args), "\n";
 	}
 
-	if (empty($config['mydnshost']['api']) || empty($config['statuscake']['username'])) { die(0); }
-
 	doLog('Starting statuscake-updater at ', date('r'));
 
 	if (empty($config['redis']) || !class_exists('Redis')) {
@@ -84,28 +82,33 @@
 	doLog('Setting: ', json_encode(['records' => [['id' => $active['id'], 'content' => $rrs[$newActivePos]], ['id' => $activerr['id'], 'content' => $newContent]]]));
 	doLog('Setting Result: ', json_encode($res));
 
-	// Allow slaves time to update.
-	doLog('Allowing servers time to update... (Waiting: 30s)');
-	sleep(30);
-	doLog('Updating tests.');
 
-	// Update statuscake
-	$headers = array('Authorization' => 'Bearer ' . $config['statuscake']['apikey']);
-	$data = ['dns_ips' => [$newContent], 'website_url' => sprintf('%s.%s', $rrs[$newActivePos], $config['mydnshost']['domain'])];
+	if (!empty($config['mydnshost']['api']) && !empty($config['statuscake']['username'])) {
+		// Allow slaves time to update.
+		doLog('Allowing servers time to update... (Waiting: 30s)');
+		sleep(30);
+		doLog('Updating tests.');
 
-	doLog('Updating tests to check ', $data['website_url'], ' is ', $data['dns_ips'][0]);
+		// Update statuscake
+		$headers = array('Authorization' => 'Bearer ' . $config['statuscake']['apikey']);
+		$data = ['dns_ips' => [$newContent], 'website_url' => sprintf('%s.%s', $rrs[$newActivePos], $config['mydnshost']['domain'])];
 
-	foreach ($tests as $testid) {
-		try {
-			$resp = Requests::put('https://api.statuscake.com/v1/uptime/' . $testid, $headers, $data);
-			if ($resp->status_code >= 200 && $resp->status_code < 300) {
-				doLog('Updated test ', $testid);
-			} else {
-				throw new Exception('Got ' . $resp->status_code . ' from API.');
+		doLog('Updating tests to check ', $data['website_url'], ' is ', $data['dns_ips'][0]);
+
+		foreach ($tests as $testid) {
+			try {
+				$resp = Requests::put('https://api.statuscake.com/v1/uptime/' . $testid, $headers, $data);
+				if ($resp->status_code >= 200 && $resp->status_code < 300) {
+					doLog('Updated test ', $testid);
+				} else {
+					throw new Exception('Got ' . $resp->status_code . ' from API.');
+				}
+			} catch (Exception $ex) {
+				doLog('Error updating ', $testid, ': ', $ex->getMessage());
 			}
-		} catch (Exception $ex) {
-			doLog('Error updating ', $testid, ': ', $ex->getMessage());
 		}
+	} else {
+		doLog('Skipping updating statuscake tests.');
 	}
 
 	// Done.
