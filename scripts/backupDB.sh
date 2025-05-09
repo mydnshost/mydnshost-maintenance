@@ -6,7 +6,7 @@ NOW=`date +'%d-%b-%Y-%H-%M'`
 BACKUPDIR=/output/mysqlbackup
 mkdir -p "${BACKUPDIR}"
 
-curl --silent --unix-socket /var/run/docker.sock "http:/containers/json" | /scripts/jq -r '.[] | select(.Labels."uk.co.mydnshost.maintenance.db.backup" == "true") | .Id' | while read CID; do
+curl --silent --unix-socket /var/run/docker.sock "http:/docker/containers/json" | /scripts/jq -r '.[] | select(.Labels."uk.co.mydnshost.maintenance.db.backup" == "true") | .Id' | while read CID; do
 	echo "========================================";
 	echo "Container: ${CID}";
 	echo "====================";
