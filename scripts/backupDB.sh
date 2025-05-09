@@ -31,7 +31,7 @@ curl --silent --unix-socket /var/run/docker.sock "http:/docker/containers/json" 
 	    echo "Optimize:"
 	    /usr/bin/mysqlcheck -u"${DBUSER}" -h"${DBHOST}" --auto-repair --optimize "${DB}"
 	    echo "Dump:"
-	    /usr/bin/mysqldump -u"${DBUSER}" -h"${DBHOST}" --hex-blob --lock-tables --databases --single-transaction "${DB}" > "${LOCATION}/backup-${NOW}.sql" 2> "${LOCATION}/error-${NOW}.txt"
+	    /usr/bin/mysqldump -u"${DBUSER}" -h"${DBHOST}" --hex-blob --lock-tables --databases --single-transaction --no-tablespaces "${DB}" > "${LOCATION}/backup-${NOW}.sql" 2> "${LOCATION}/error-${NOW}.txt"
 
 		ERRORS=`cat "${LOCATION}/error-${NOW}.txt"`
 		if [ "${ERRORS}" = "" ]; then
