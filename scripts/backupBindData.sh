@@ -14,6 +14,6 @@ echo "Backups completed.";
 echo "========================================";
 echo "";
 
-find "${BACKUPDIR}/" -mtime +30 -exec rm -Rf {}  \;
+find "${BACKUPDIR}/" -mtime +15 -exec rm -Rf {}  \;
 
 exit 0;

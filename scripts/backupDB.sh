@@ -37,6 +37,7 @@ curl --silent --unix-socket /var/run/docker.sock "http:/docker/containers/json" 
 		if [ "${ERRORS}" = "" ]; then
 			rm "${LOCATION}/error-${NOW}.txt";
 		fi;
+		gzip "${LOCATION}/backup-${NOW}.sql"
 		echo "====================";
 	done
 
@@ -46,6 +47,6 @@ curl --silent --unix-socket /var/run/docker.sock "http:/docker/containers/json" 
 	echo "";
 done;
 
-find "${BACKUPDIR}/" -mtime +30 -exec rm -Rf {}  \;
+find "${BACKUPDIR}/" -mtime +15 -exec rm -Rf {}  \;
 
 exit 0;
