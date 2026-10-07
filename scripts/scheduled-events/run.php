@@ -21,6 +21,12 @@
 
 	$connection = new AMQPStreamConnection($config['rabbitmq']['host'], $config['rabbitmq']['port'], $config['rabbitmq']['user'], $config['rabbitmq']['pass']);
 	$channel = $connection->channel();
-	$channel->exchange_declare('events', 'topic', false, false, false);
-	$msg = new AMQPMessage(json_encode(['event' => $event, 'args' => $args]));
+	$channel->confirm_select();
+	$channel->set_nack_handler(function ($msg) use ($event) {
+		doLog('Event rejected by RabbitMQ: ', $event);
+		exit(1);
+	});
+	$channel->exchange_declare('events', 'topic', false, true, false);
+	$msg = new AMQPMessage(json_encode(['event' => $event, 'args' => $args]), ['delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT]);
 	$channel->basic_publish($msg, 'events', 'event.' . $event);
+	$channel->wait_for_pending_acks(10);
